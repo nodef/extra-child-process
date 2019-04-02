@@ -1,0 +1,28 @@
+{
+  "name": "extra-cp",
+  "version": "0.0.1",
+  "description": "Promise interface for child_process.",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nodef/extra-cp.git"
+  },
+  "keywords": [
+    "extra",
+    "cp",
+    "promise",
+    "interface",
+    "child",
+    "process",
+    "merferry"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/nodef/extra-cp/issues"
+  },
+  "homepage": "https://github.com/nodef/extra-cp#readme"
+}
