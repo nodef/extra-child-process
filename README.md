@@ -7,8 +7,8 @@ const cp = require('extra-cp');
 
 
 // With Promise:
-var {err, stdout, stderr} = await cp.exec('ls -a', {cwd: '/home'});
-var {err, stdout, stderr} = await cp.execFile('ls', ['-a'], {cwd: '/home'});
+var {stdout, stderr} = await cp.exec('ls -a', {cwd: '/home'});
+var {stdout, stderr} = await cp.execFile('ls', ['-a'], {cwd: '/home'});
 
 // Without Promise:
 cp.exec('ls -a', {cwd: '/home'}, (err, stdout, stderr) => 0);
