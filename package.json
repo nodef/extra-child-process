@@ -1,6 +1,6 @@
 {
   "name": "extra-cp",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Promise interface for child_process.",
   "main": "index.js",
   "scripts": {
