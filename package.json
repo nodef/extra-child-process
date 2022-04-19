@@ -1,28 +1,40 @@
 {
-  "name": "extra-cp",
-  "version": "1.1.2",
+  "name": "extra-child-process",
+  "version": "0.0.1",
   "description": "Promise interface for child_process.",
   "main": "index.js",
-  "scripts": {
-    "test": "exit"
+  "module": "index.mjs",
+  "sideEffects": false,
+  "exports": {
+    "require": "./index.js",
+    "import": "./index.mjs"
   },
+  "scripts": {
+    "test": "exit",
+    "build": "node ./build",
+    "deploy": "node ./build deploy"
+  },
+  "keywords": [
+    "extra",
+    "child",
+    "process"
+  ],
+  "author": "wolfram77@gmail.com",
+  "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nodef/extra-cp.git"
   },
-  "keywords": [
-    "extra",
-    "cp",
-    "promise",
-    "interface",
-    "child",
-    "process",
-    "merferry"
-  ],
-  "author": "wolfram77@gmail.com",
-  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/nodef/extra-cp/issues"
   },
-  "homepage": "https://github.com/nodef/extra-cp#readme"
+  "homepage": "https://github.com/nodef/extra-cp#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.3",
+    "@rollup/plugin-node-resolve": "^13.2.0",
+    "@types/node": "^17.0.23",
+    "extra-build": "^2.0.31",
+    "rollup-plugin-cleanup": "^3.2.1",
+    "rollup-plugin-dts": "^4.2.1"
+  }
 }

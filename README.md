@@ -1,7 +1,7 @@
-Promise interface for child_process.
+Useful additions to inbuilt child_process module.
 
 ```javascript
-const cp = require('extra-cp');
+const cp = require('extra-child-process');
 // cp.exec(command, options)
 // cp.execFile(file, args, options)
 
