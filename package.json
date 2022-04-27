@@ -1,7 +1,7 @@
 {
   "name": "extra-child-process",
-  "version": "1.0.0",
-  "description": "Promise interface for child_process.",
+  "version": "1.0.1",
+  "description": "Useful additions to inbuilt child_process module.",
   "main": "index.js",
   "module": "index.mjs",
   "sideEffects": false,
@@ -23,12 +23,12 @@
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nodef/extra-cp.git"
+    "url": "git+https://github.com/nodef/extra-child-process.git"
   },
   "bugs": {
-    "url": "https://github.com/nodef/extra-cp/issues"
+    "url": "https://github.com/nodef/extra-child-process/issues"
   },
-  "homepage": "https://github.com/nodef/extra-cp#readme",
+  "homepage": "https://github.com/nodef/extra-child-process#readme",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-node-resolve": "^13.2.0",

@@ -37,7 +37,7 @@ main();
 | [execAsync] | Execute a command within a shell, buffering any output. |
 | [execFile] | Execute an executable without a shell by default, buffering any output. |
 | [execFileAsync] | Execute an executable without a shell by default, buffering any output. |
-| [spawnAsync] | Execute an executable without a shell by default, buffering any output. |
+| [spawnAsync] | Spawn new process using given command and arguments. |
 
 <br>
 <br>

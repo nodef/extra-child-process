@@ -129,20 +129,28 @@ export function execAsync(command: string, options?: ExecSyncOptions): PromiseWi
  * Execute a command within a shell, buffering any output.
  * @param command command to run, with space-separated arguments
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function exec(command: string, callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function exec(command: string, callback: ExecCallback): ChildProcess;
 
 /**
  * Execute a command within a shell, buffering any output.
  * @param command command to run, with space-separated arguments
  * @param options options {cwd, env, ...}
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function exec(command: string, options: ExecSyncOptions, callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function exec(command: string, options: ExecSyncOptions, callback: ExecCallback): ChildProcess;
 
-export function exec(command: string, options: ExecSyncOptions | ExecCallback, callback?: ExecCallback): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
+/**
+ * Execute a command within a shell, buffering any output.
+ * @param command command to run, with space-separated arguments
+ * @param options options {cwd, env, ...}
+ * @returns output {stdout, stderr}
+ */
+export function exec(command: string, options?: ExecSyncOptions): PromiseWithChild<ExecAsyncReturns>;
+
+export function exec(command: string, options?: ExecSyncOptions | ExecCallback, callback?: ExecCallback): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
   if (typeof callback==="function") return C.exec(command, options as ExecSyncOptions, callback);
   if (typeof options ==="function") return C.exec(command, options);
   return execAsync(command, options);
@@ -184,27 +192,27 @@ export function execFileAsync(file: string, args?: string[] | ExecFileSyncOption
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function execFile(file: string, callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function execFile(file: string, callback: ExecCallback): ChildProcess;
 
 /**
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param options options {cwd, env, ...}
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function execFile(file: string, options: ExecFileSyncOptions, callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function execFile(file: string, options: ExecFileSyncOptions, callback: ExecCallback): ChildProcess;
 
 /**
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param args list of arguments
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function execFile(file: string, args: string[], callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function execFile(file: string, args: string[], callback: ExecCallback): ChildProcess;
 
 /**
  * Execute an executable without a shell by default, buffering any output.
@@ -212,9 +220,26 @@ export function execFile(file: string, args: string[], callback: ExecCallback): 
  * @param args list of arguments
  * @param options options {cwd, env, ...}
  * @param callback callback function (err, stdout, stderr)
- * @returns child process (if callback provided), else output {stdout, stderr} (promise)
+ * @returns child process
  */
-export function execFile(file: string, args: string[], options: ExecFileSyncOptions, callback: ExecCallback): PromiseWithChild<ExecAsyncReturns>;
+export function execFile(file: string, args: string[], options: ExecFileSyncOptions, callback: ExecCallback): ChildProcess;
+
+/**
+ * Execute an executable without a shell by default, buffering any output.
+ * @param file name or path of executable file
+ * @param options options {cwd, env, ...}
+ * @returns output {stdout, stderr}
+ */
+export function execFile(file: string, options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
+
+/**
+ * Execute an executable without a shell by default, buffering any output.
+ * @param file name or path of executable file
+ * @param args list of arguments
+ * @param options options {cwd, env, ...}
+ * @returns output {stdout, stderr}
+ */
+export function execFile(file: string, args: string[], options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
 export function execFile(file: string, args: string[] | ExecFileSyncOptions | ExecCallback, options?: ExecFileSyncOptions | ExecCallback, callback?: ExecCallback): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
   if (typeof callback==="function") return C.execFile(file, args as string[], options as ExecFileSyncOptions, callback);
@@ -272,7 +297,7 @@ class StreamBuffer {
 
 
 /**
- * Execute an executable without a shell by default, buffering any output.
+ * Spawn new process using given command and arguments.
  * @param command command to run
  * @param options options {cwd, env, ...}
  * @returns output {pid, output, stdout, stderr, status, signal}
@@ -280,7 +305,7 @@ class StreamBuffer {
 export function spawnAsync(command: string, options?: SpawnSyncOptions): PromiseWithChild<SpawnSyncReturns<string | Buffer>>;
 
 /**
- * Execute an executable without a shell by default, buffering any output.
+ * Spawn new process using given command and arguments.
  * @param command command to run
  * @param args list of arguments
  * @param options options {cwd, env, ...}
