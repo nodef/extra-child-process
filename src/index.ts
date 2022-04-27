@@ -57,11 +57,11 @@ export {StdioPipeNamed} from "child_process";
 
 // export {exec} from "child_process";
 // export {execFile} from "child_process";
-// export {spawn} from "child_process";
-export {execSync}  from "child_process";
+export {fork}  from "child_process";
+export {spawn} from "child_process";
+export {execSync}     from "child_process";
 export {execFileSync} from "child_process";
-export {spawnSync} from "child_process";
-export {fork} from "child_process";
+export {spawnSync}    from "child_process";
 
 
 
