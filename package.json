@@ -1,6 +1,6 @@
 {
   "name": "extra-child-process",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Promise interface for child_process.",
   "main": "index.js",
   "module": "index.mjs",
