@@ -101,7 +101,8 @@ function publishRoot(sym, ver) {
       fs.writeFileTextSync('README.md', txt);
       package.write('.', m);
       package.publish('.');
-      package.publishGithub('.', owner);
+      try { package.publishGithub('.', owner); }
+      catch {}
     });
   });
 }
