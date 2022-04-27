@@ -1,8 +1,8 @@
 const cp = require('child_process');
 
 
-function main() {
-  var x = cp.execSync(`node ./process.js`, {encoding: 'utf8'});
-  console.log(x);
+async function main() {
+  var {stderr, stdout} = await cp.exec.__promisify__(`node ./process.js`, {encoding: 'utf8'});
+  console.log(stdout);
 }
 main();
