@@ -38,6 +38,12 @@ main();
 | [execFile] | Execute an executable without a shell by default, buffering any output. |
 | [execFileAsync] | Execute an executable without a shell by default, buffering any output. |
 | [spawnAsync] | Spawn new process using given command and arguments. |
+| [whichSync] | Locate path of executable for given command. |
+| [whichAllSync] | Locate paths of all matching executables for given command. |
+| [whichAsync] | Locate path of executable for given command. |
+| [whichAllAsync] | Locate paths of all matching executables for given command. |
+| [which] | Locate path of executable for given command. |
+| [whichAll] | Locate paths of all matching executables for given command. |
 
 <br>
 <br>
@@ -64,6 +70,7 @@ main();
 - [child-process-es6-promise package](https://www.npmjs.com/package/child-process-es6-promise)
 - [promise-exec package](https://www.npmjs.com/package/promise-exec)
 - [promisify-child-process package](https://www.npmjs.com/package/promisify-child-process)
+- [which package](https://www.npmjs.com/package/which)
 
 <br>
 <br>
@@ -76,3 +83,9 @@ main();
 [execFileAsync]: https://nodef.github.io/extra-child-process/modules.html#execFileAsync
 [execFile]: https://nodef.github.io/extra-child-process/modules.html#execFile
 [spawnAsync]: https://nodef.github.io/extra-child-process/modules.html#spawnAsync
+[whichSync]: https://nodef.github.io/extra-child-process/modules.html#whichSync
+[whichAllSync]: https://nodef.github.io/extra-child-process/modules.html#whichAllSync
+[whichAsync]: https://nodef.github.io/extra-child-process/modules.html#whichAsync
+[whichAllAsync]: https://nodef.github.io/extra-child-process/modules.html#whichAllAsync
+[which]: https://nodef.github.io/extra-child-process/modules.html#which
+[whichAll]: https://nodef.github.io/extra-child-process/modules.html#whichAll

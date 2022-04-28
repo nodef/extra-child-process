@@ -2,7 +2,11 @@ import {ExecException} from "child_process";
 import {ChildProcess, PromiseWithChild}       from "child_process";
 import {ExecSyncOptions, ExecFileSyncOptions} from "child_process";
 import {SpawnSyncOptions, SpawnSyncReturns}   from "child_process";
+import {Dirent} from "fs";
+import {EOL}    from "os";
 import * as C from "child_process";
+import * as F from "fs";
+import * as P from "path";
 
 
 
@@ -81,7 +85,12 @@ export interface ExecAsyncReturns {
 export interface ExecAsyncException extends ExecException, ExecAsyncReturns {}
 
 
-/** Callback for exec*(). */
+/**
+ * Callback for exec*().
+ * @param error exec error
+ * @param stdout standard output after exec
+ * @param stderr standard error after exec
+ */
 export type ExecCallback = (error: ExecException, stdout: string | Buffer, stderr: string | Buffer) => void;
 
 
@@ -338,4 +347,287 @@ export function spawnAsync(command: string, args?: string[] | SpawnSyncOptions, 
     });
   });
   return Object.assign(promise, {child});
+}
+
+
+
+
+// WHICH
+// -----
+
+export interface WhichOptions {
+  /** Current working directory (win32 only). */
+  cwd?: string,
+  /** Paths to search for. */
+  paths?: string[],
+}
+
+
+/**
+ * Check whether a path satisfies a test.
+ * @param path path of file or directory
+ * @returns whether test is satisfied
+ */
+export type PathTestFunction = (path: string) => boolean;
+
+/**
+ * Callback for which*().
+ * @param error which error
+ * @param path executable path
+ */
+export type WhichCallback = (error: NodeJS.ErrnoException, path?: string) => void;
+
+/**
+ * Callback for whichAll*().
+ * @param error which error
+ * @param paths executable paths
+ */
+export type WhichAllCallback = (error: NodeJS.ErrnoException, paths?: string[]) => void;
+
+
+function whichWin32(dir: string, entries: Dirent[], ft: PathTestFunction): string {
+  var bin = null, binp = 0;
+  var PATHEXT = process.env.PATHEXT.toUpperCase();
+  for (var e of entries) {
+    if (!e.isFile()) continue;
+    var ext  = P.extname(e.name);
+    var file = P.basename(e.name, ext);
+    if (!ft(P.join(dir, file))) continue;
+    var prio = PATHEXT.indexOf(ext.toUpperCase());
+    if (prio <= binp) continue;
+    bin  = P.join(dir, e.name);
+    binp = prio;
+  }
+  return bin;
+}
+
+function whichAllWin32(dir: string, entries: Dirent[], ft: PathTestFunction): string[] {
+  var bin = [];
+  var PATHEXT = process.env.PATHEXT.toUpperCase();
+  for (var e of entries) {
+    if (!e.isFile()) continue;
+    var ext  = P.extname(e.name);
+    var file = P.basename(e.name, ext);
+    if (!ft(P.join(dir, file))) continue;
+    var prio = PATHEXT.indexOf(ext.toUpperCase());
+    bin.push([P.join(dir, e.name), prio]);
+  }
+  bin.sort((a, b) => a[1] - b[1]);
+  return bin.map(x => x[0]);
+}
+
+
+function whichLinuxSync(dir: string, entries: Dirent[], ft: PathTestFunction): string {
+  for (var e of entries) {
+    var full = P.join(dir, e.name);
+    if (!ft(full)) continue;
+    try { F.accessSync(full, F.constants.X_OK); }
+    catch { continue; }
+    return full;
+  }
+  return null;
+}
+
+function whichAllLinuxSync(dir: string, entries: Dirent[], ft: PathTestFunction): string[] {
+  var a = [];
+  for (var e of entries) {
+    if (!e.isFile()) continue;
+    var full = P.join(dir, e.name);
+    if (!ft(full)) continue;
+    try { F.accessSync(full, F.constants.X_OK); a.push(full); }
+    catch {}
+  }
+  return a;
+}
+
+
+function whichLinuxAsync(dir: string, entries: Dirent[], ft: PathTestFunction): Promise<string> {
+  return new Promise(resolve => {
+    var n = 0;
+    for (var e of entries) {
+      if (!e.isFile()) continue;
+      let full = P.join(dir, e.name);
+      if (!ft(full)) continue;
+      F.access(full, F.constants.X_OK, err => {
+        if (err==null) resolve(full);
+        if (--n===0) resolve(null);
+      });
+      ++n;
+    }
+  });
+}
+
+function whichAllLinuxAsync(dir: string, entries: Dirent[], ft: PathTestFunction): Promise<string[]> {
+  return new Promise(resolve => {
+    var a = [], n = 0;
+    for (var e of entries) {
+      if (!e.isFile()) continue;
+      let full = P.join(dir, e.name);
+      if (!ft(full)) continue;
+      F.access(full, F.constants.X_OK, err => {
+        if (err==null) a.push(full);
+        if (--n===0) resolve(a);
+      });
+      ++n;
+    }
+  });
+}
+
+
+function whichFnSync(dirs: string[], ft: PathTestFunction): string {
+  for (var dir of dirs) {
+    var entries = F.readdirSync(dir, {withFileTypes: true});
+    var bin = EOL==="\n"? whichLinuxSync(dir, entries, ft) : whichWin32(dir, entries, ft);
+    if (bin!=null) return bin;
+  }
+  return null;
+}
+
+function whichAllFnSync(dirs: string[], ft: PathTestFunction): string[] {
+  var a = [];
+  for (var dir of dirs) {
+    var entries = F.readdirSync(dir, {withFileTypes: true});
+    var bins = EOL==="\n"? whichAllLinuxSync(dir, entries, ft) : whichAllWin32(dir, entries, ft);
+    a.push(...bins);
+  }
+  return a;
+}
+
+
+async function whichFnAsync(dirs: string[], ft: PathTestFunction): Promise<string> {
+  var binps = [];
+  for (var dir of dirs) {
+    var p = F.promises.readdir(dir, {withFileTypes: true});
+    binps.push(p.then(entries => EOL==="\n"? whichLinuxAsync(dir, entries, ft) : whichWin32(dir, entries, ft)));
+  }
+  for (var binp of binps) {
+    var bin = await binp;
+    if (bin!=null) return bin;
+  }
+  return null;
+}
+
+async function whichAllFnAsync(dirs: string[], ft: PathTestFunction): Promise<string[]> {
+  var binps = [], a = [];
+  for (var dir of dirs) {
+    var p = F.promises.readdir(dir, {withFileTypes: true});
+    binps.push(p.then(entries => EOL==="\n"? whichAllLinuxAsync(dir, entries, ft) : whichAllWin32(dir, entries, ft)));
+  }
+  for (var binp of binps)
+    a.push(...(await binp));
+  return a;
+}
+
+
+function whichDirs(options?: WhichOptions) {
+  var sep  = EOL==="\n"? ":" : ";";
+  var dirs = options?.paths || process.env.PATH.split(sep);
+  return EOL!=="\n" && options?.cwd? [options.cwd, ...dirs] : dirs;
+}
+
+function whichTestFunction(cmd: string | RegExp | PathTestFunction): PathTestFunction {
+  if (typeof cmd==="function") return cmd;
+  if (typeof cmd==="string") return path => P.basename(path)===cmd;
+  return path => cmd.test(path);
+}
+
+
+/**
+ * Locate path of executable for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns path of executable
+ */
+export function whichSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string {
+  return whichFnSync(whichDirs(options), whichTestFunction(cmd));
+}
+
+/**
+ * Locate paths of all matching executables for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns paths of executables
+ */
+export function whichAllSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string[] {
+  return whichAllFnSync(whichDirs(options), whichTestFunction(cmd));
+}
+
+/**
+ * Locate path of executable for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns path of executable
+ */
+export function whichAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string> {
+  return whichFnAsync(whichDirs(options), whichTestFunction(cmd));
+}
+
+/**
+ * Locate paths of all matching executables for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns paths of executables
+ */
+export function whichAllAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string[]> {
+  return whichAllFnAsync(whichDirs(options), whichTestFunction(cmd));
+}
+
+
+/**
+ * Locate path of executable for given command.
+ * @param cmd command to locate
+ * @param callback callback function (err, path)
+ */
+export function which(cmd: string | RegExp | PathTestFunction, callback: WhichCallback): void;
+
+/**
+ * Locate path of executable for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @param callback callback function (err, path)
+ */
+export function which(cmd: string | RegExp | PathTestFunction, options: WhichOptions, callback: WhichCallback): void;
+
+/**
+ * Locate path of executable for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns path of executable
+ */
+export function which(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string>;
+
+export function which(cmd: string | RegExp | PathTestFunction, options?: WhichOptions | WhichCallback, callback?: WhichCallback): void | Promise<string> {
+  if (typeof callback==="function") whichAsync(cmd, options as WhichOptions).then(bin => callback(null, bin), callback);
+  else if (typeof options==="function") whichAsync(cmd).then(bin => options(null, bin), options);
+  else return whichAsync(cmd, options);
+}
+
+
+/**
+ * Locate paths of all matching executables for given command.
+ * @param cmd command to locate
+ * @param callback callback function (err, path)
+ */
+export function whichAll(cmd: string | RegExp | PathTestFunction, callback: WhichAllCallback): void;
+
+/**
+ * Locate paths of all matching executables for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @param callback callback function (err, path)
+ */
+export function whichAll(cmd: string | RegExp | PathTestFunction, options: WhichOptions, callback: WhichAllCallback): void;
+
+/**
+ * Locate paths of all matching executables for given command.
+ * @param cmd command to locate
+ * @param options which options {cwd, paths}
+ * @returns paths of executables
+ */
+export function whichAll(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string[]>;
+
+export function whichAll(cmd: string | RegExp | PathTestFunction, options?: WhichOptions | WhichAllCallback, callback?: WhichAllCallback): void | Promise<string[]> {
+  if (typeof callback==="function") whichAllAsync(cmd, options as WhichOptions).then(bin => callback(null, bin), callback);
+  else if (typeof options==="function") whichAllAsync(cmd).then(bin => options(null, bin), options);
+  else return whichAllAsync(cmd, options);
 }
