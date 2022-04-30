@@ -360,6 +360,8 @@ export interface WhichOptions {
   cwd?: string,
   /** Paths to search for. */
   paths?: string[],
+  /** Extension names to match (win32 only). */
+  extnames?: string[],
 }
 
 
@@ -385,15 +387,14 @@ export type WhichCallback = (error: NodeJS.ErrnoException, path?: string) => voi
 export type WhichAllCallback = (error: NodeJS.ErrnoException, paths?: string[]) => void;
 
 
-function whichWin32(dir: string, entries: Dirent[], ft: PathTestFunction): string {
+function whichWin32(dir: string, entries: Dirent[], exts: string[], ft: PathTestFunction): string {
   var bin = null, binp = 0;
-  var PATHEXT = process.env.PATHEXT.toUpperCase();
   for (var e of entries) {
     if (!e.isFile()) continue;
     var ext  = P.extname(e.name);
     var file = P.basename(e.name, ext);
     if (!ft(P.join(dir, file))) continue;
-    var prio = PATHEXT.indexOf(ext.toUpperCase());
+    var prio = exts.indexOf((ext||".?").toLowerCase());
     if (prio <= binp) continue;
     bin  = P.join(dir, e.name);
     binp = prio;
@@ -401,16 +402,15 @@ function whichWin32(dir: string, entries: Dirent[], ft: PathTestFunction): strin
   return bin;
 }
 
-function whichAllWin32(dir: string, entries: Dirent[], ft: PathTestFunction): string[] {
+function whichAllWin32(dir: string, entries: Dirent[], exts: string[], ft: PathTestFunction): string[] {
   var bin = [];
-  var PATHEXT = process.env.PATHEXT.toUpperCase();
   for (var e of entries) {
     if (!e.isFile()) continue;
     var ext  = P.extname(e.name);
     var file = P.basename(e.name, ext);
     if (!ft(P.join(dir, file))) continue;
-    var prio = PATHEXT.indexOf(ext.toUpperCase());
-    bin.push([P.join(dir, e.name), prio]);
+    var prio = exts.indexOf((ext||".?").toLowerCase());
+    if (prio>=0) bin.push([P.join(dir, e.name), prio]);
   }
   bin.sort((a, b) => a[1] - b[1]);
   return bin.map(x => x[0]);
@@ -419,6 +419,7 @@ function whichAllWin32(dir: string, entries: Dirent[], ft: PathTestFunction): st
 
 function whichLinuxSync(dir: string, entries: Dirent[], ft: PathTestFunction): string {
   for (var e of entries) {
+    if (!e.isFile()) continue;
     var full = P.join(dir, e.name);
     if (!ft(full)) continue;
     try { F.accessSync(full, F.constants.X_OK); }
@@ -474,31 +475,31 @@ function whichAllLinuxAsync(dir: string, entries: Dirent[], ft: PathTestFunction
 }
 
 
-function whichFnSync(dirs: string[], ft: PathTestFunction): string {
+function whichFnSync(dirs: string[], exts: string[], ft: PathTestFunction): string {
   for (var dir of dirs) {
     var entries = F.readdirSync(dir, {withFileTypes: true});
-    var bin = EOL==="\n"? whichLinuxSync(dir, entries, ft) : whichWin32(dir, entries, ft);
+    var bin = EOL==="\n"? whichLinuxSync(dir, entries, ft) : whichWin32(dir, entries, exts, ft);
     if (bin!=null) return bin;
   }
   return null;
 }
 
-function whichAllFnSync(dirs: string[], ft: PathTestFunction): string[] {
+function whichAllFnSync(dirs: string[], exts: string[], ft: PathTestFunction): string[] {
   var a = [];
   for (var dir of dirs) {
     var entries = F.readdirSync(dir, {withFileTypes: true});
-    var bins = EOL==="\n"? whichAllLinuxSync(dir, entries, ft) : whichAllWin32(dir, entries, ft);
+    var bins = EOL==="\n"? whichAllLinuxSync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft);
     a.push(...bins);
   }
   return a;
 }
 
 
-async function whichFnAsync(dirs: string[], ft: PathTestFunction): Promise<string> {
+async function whichFnAsync(dirs: string[], exts: string[], ft: PathTestFunction): Promise<string> {
   var binps = [];
-  for (var dir of dirs) {
+  for (let dir of dirs) {
     var p = F.promises.readdir(dir, {withFileTypes: true});
-    binps.push(p.then(entries => EOL==="\n"? whichLinuxAsync(dir, entries, ft) : whichWin32(dir, entries, ft)));
+    binps.push(p.then(entries => EOL==="\n"? whichLinuxAsync(dir, entries, ft) : whichWin32(dir, entries, exts, ft)));
   }
   for (var binp of binps) {
     var bin = await binp;
@@ -507,11 +508,11 @@ async function whichFnAsync(dirs: string[], ft: PathTestFunction): Promise<strin
   return null;
 }
 
-async function whichAllFnAsync(dirs: string[], ft: PathTestFunction): Promise<string[]> {
+async function whichAllFnAsync(dirs: string[], exts: string[], ft: PathTestFunction): Promise<string[]> {
   var binps = [], a = [];
-  for (var dir of dirs) {
+  for (let dir of dirs) {
     var p = F.promises.readdir(dir, {withFileTypes: true});
-    binps.push(p.then(entries => EOL==="\n"? whichAllLinuxAsync(dir, entries, ft) : whichAllWin32(dir, entries, ft)));
+    binps.push(p.then(entries => EOL==="\n"? whichAllLinuxAsync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft)));
   }
   for (var binp of binps)
     a.push(...(await binp));
@@ -523,6 +524,10 @@ function whichDirs(options?: WhichOptions) {
   var sep  = EOL==="\n"? ":" : ";";
   var dirs = options?.paths || process.env.PATH.split(sep);
   return EOL!=="\n" && options?.cwd? [options.cwd, ...dirs] : dirs;
+}
+
+function whichExts(options?: WhichOptions) {
+  return options?.extnames || (process.env.PATHEXT||"").toLowerCase().split(";");
 }
 
 function whichTestFunction(cmd: string | RegExp | PathTestFunction): PathTestFunction {
@@ -539,7 +544,7 @@ function whichTestFunction(cmd: string | RegExp | PathTestFunction): PathTestFun
  * @returns path of executable
  */
 export function whichSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string {
-  return whichFnSync(whichDirs(options), whichTestFunction(cmd));
+  return whichFnSync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
 /**
@@ -549,7 +554,7 @@ export function whichSync(cmd: string | RegExp | PathTestFunction, options?: Whi
  * @returns paths of executables
  */
 export function whichAllSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string[] {
-  return whichAllFnSync(whichDirs(options), whichTestFunction(cmd));
+  return whichAllFnSync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
 /**
@@ -559,7 +564,7 @@ export function whichAllSync(cmd: string | RegExp | PathTestFunction, options?: 
  * @returns path of executable
  */
 export function whichAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string> {
-  return whichFnAsync(whichDirs(options), whichTestFunction(cmd));
+  return whichFnAsync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
 /**
@@ -569,7 +574,7 @@ export function whichAsync(cmd: string | RegExp | PathTestFunction, options?: Wh
  * @returns paths of executables
  */
 export function whichAllAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string[]> {
-  return whichAllFnAsync(whichDirs(options), whichTestFunction(cmd));
+  return whichAllFnAsync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
 
