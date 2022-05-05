@@ -34,14 +34,8 @@ main();
 | Property | Description |
 |  ----  |  ----  |
 | [exec] | Execute a command within a shell, buffering any output. |
-| [execAsync] | Execute a command within a shell, buffering any output. |
 | [execFile] | Execute an executable without a shell by default, buffering any output. |
-| [execFileAsync] | Execute an executable without a shell by default, buffering any output. |
 | [spawnAsync] | Spawn new process using given command and arguments. |
-| [whichSync] | Locate path of executable for given command. |
-| [whichAllSync] | Locate paths of all matching executables for given command. |
-| [whichAsync] | Locate path of executable for given command. |
-| [whichAllAsync] | Locate paths of all matching executables for given command. |
 | [which] | Locate path of executable for given command. |
 | [whichAll] | Locate paths of all matching executables for given command. |
 
@@ -78,14 +72,8 @@ main();
 [![](https://img.youtube.com/vi/QKM1o32Y2ps/maxresdefault.jpg)](https://www.youtube.com/watch?v=QKM1o32Y2ps)
 
 [child_process]: https://nodejs.org/api/child_process.html
-[execAsync]: https://nodef.github.io/extra-child-process/modules.html#execAsync
 [exec]: https://nodef.github.io/extra-child-process/modules.html#exec
-[execFileAsync]: https://nodef.github.io/extra-child-process/modules.html#execFileAsync
 [execFile]: https://nodef.github.io/extra-child-process/modules.html#execFile
 [spawnAsync]: https://nodef.github.io/extra-child-process/modules.html#spawnAsync
-[whichSync]: https://nodef.github.io/extra-child-process/modules.html#whichSync
-[whichAllSync]: https://nodef.github.io/extra-child-process/modules.html#whichAllSync
-[whichAsync]: https://nodef.github.io/extra-child-process/modules.html#whichAsync
-[whichAllAsync]: https://nodef.github.io/extra-child-process/modules.html#whichAllAsync
 [which]: https://nodef.github.io/extra-child-process/modules.html#which
 [whichAll]: https://nodef.github.io/extra-child-process/modules.html#whichAll

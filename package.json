@@ -1,6 +1,6 @@
 {
   "name": "extra-child-process",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Useful additions to inbuilt child_process module.",
   "main": "index.js",
   "module": "index.mjs",
