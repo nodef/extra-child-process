@@ -366,11 +366,11 @@ export interface WhichOptions {
 
 
 /**
- * Check whether a path satisfies a test.
- * @param path path of file or directory
+ * Check whether a file satisfies a test.
+ * @param file name of file
  * @returns whether test is satisfied
  */
-export type PathTestFunction = (path: string) => boolean;
+export type FileTestFunction = (file: string) => boolean;
 
 /**
  * Callback for which*().
@@ -387,153 +387,168 @@ export type WhichCallback = (error: NodeJS.ErrnoException, path?: string) => voi
 export type WhichAllCallback = (error: NodeJS.ErrnoException, paths?: string[]) => void;
 
 
-function whichWin32(dir: string, entries: Dirent[], exts: string[], ft: PathTestFunction): string {
-  var bin = null, binp = 0;
+// Get first matching executable with highest priority (needs entries ordered by name).
+function whichWin32(dir: string, entries: Dirent[], exts: string[], ft: FileTestFunction): string {
+  var apath = null, afile = null;
+  var aprio = Number.MAX_SAFE_INTEGER;
   for (var e of entries) {
     if (!e.isFile()) continue;
     var ext  = P.extname(e.name);
     var file = P.basename(e.name, ext);
-    if (!ft(P.join(dir, file))) continue;
+    if (afile!=null && file!==afile) break;
+    if (!ft(file)) continue;
     var prio = exts.indexOf((ext||".?").toLowerCase());
-    if (prio <= binp) continue;
-    bin  = P.join(dir, e.name);
-    binp = prio;
+    if (prio<0 || prio>=aprio) continue;
+    apath = P.join(dir, e.name);
+    afile = file;
+    aprio = prio;
   }
-  return bin;
+  return apath;
 }
 
-function whichAllWin32(dir: string, entries: Dirent[], exts: string[], ft: PathTestFunction): string[] {
-  var bin = [];
+// Get matching executables ordered by name and priority.
+function whichAllWin32(dir: string, entries: Dirent[], exts: string[], ft: FileTestFunction): string[] {
+  var a = [];
   for (var e of entries) {
     if (!e.isFile()) continue;
     var ext  = P.extname(e.name);
     var file = P.basename(e.name, ext);
-    if (!ft(P.join(dir, file))) continue;
+    if (!ft(file)) continue;
     var prio = exts.indexOf((ext||".?").toLowerCase());
-    if (prio>=0) bin.push([P.join(dir, e.name), prio]);
+    if (prio>=0) a.push({file, prio, path: P.join(dir, e.name)});
   }
-  bin.sort((a, b) => a[1] - b[1]);
-  return bin.map(x => x[0]);
+  a.sort((a, b) => a.file.localeCompare(b.file) || a.prio - b.prio);
+  return a.map(x => x.path);
 }
 
 
-function whichLinuxSync(dir: string, entries: Dirent[], ft: PathTestFunction): string {
+// Get first matching executable (needs entries ordered by name).
+function whichLinuxSync(dir: string, entries: Dirent[], ft: FileTestFunction): string {
   for (var e of entries) {
     if (!e.isFile()) continue;
-    var full = P.join(dir, e.name);
-    if (!ft(full)) continue;
-    try { F.accessSync(full, F.constants.X_OK); }
+    if (!ft(e.name)) continue;
+    var path = P.join(dir, e.name);
+    try { F.accessSync(path, F.constants.X_OK); }
     catch { continue; }
-    return full;
+    return path;
   }
   return null;
 }
 
-function whichAllLinuxSync(dir: string, entries: Dirent[], ft: PathTestFunction): string[] {
+// Get matching executables ordered by name.
+function whichAllLinuxSync(dir: string, entries: Dirent[], ft: FileTestFunction): string[] {
   var a = [];
   for (var e of entries) {
     if (!e.isFile()) continue;
-    var full = P.join(dir, e.name);
-    if (!ft(full)) continue;
-    try { F.accessSync(full, F.constants.X_OK); a.push(full); }
+    if (!ft(e.name)) continue;
+    var path = P.join(dir, e.name);
+    try { F.accessSync(path, F.constants.X_OK); a.push(path); }
     catch {}
   }
-  return a;
+  return a.sort();
 }
 
-
-function whichLinuxAsync(dir: string, entries: Dirent[], ft: PathTestFunction): Promise<string> {
+// Get first matching executable (needs entries ordered by name).
+function whichLinuxAsync(dir: string, entries: Dirent[], ft: FileTestFunction): Promise<string> {
   return new Promise(resolve => {
-    var n = 0;
+    var n = 0, paths = [];
+    var best = Number.MAX_SAFE_INTEGER;
     for (var e of entries) {
       if (!e.isFile()) continue;
-      let full = P.join(dir, e.name);
-      if (!ft(full)) continue;
-      F.access(full, F.constants.X_OK, err => {
-        if (err==null) resolve(full);
-        if (--n===0) resolve(null);
+      if (!ft(e.name)) continue;
+      let i    = paths.push(null) - 1;
+      let path = P.join(dir, e.name);
+      F.access(path, F.constants.X_OK, err => {
+        paths[i] = err? "" : path; --n;
+        if (!err) best = Math.min(best, i);
+        if (best===Number.MAX_SAFE_INTEGER) { if (n===0) resolve(null); }
+        else if (!paths.slice(0, best).includes(null)) resolve(paths[best]);
       });
       ++n;
     }
   });
 }
 
-function whichAllLinuxAsync(dir: string, entries: Dirent[], ft: PathTestFunction): Promise<string[]> {
+// Get matching executables.
+function whichAllLinuxAsync(dir: string, entries: Dirent[], ft: FileTestFunction): Promise<string[]> {
   return new Promise(resolve => {
     var a = [], n = 0;
     for (var e of entries) {
       if (!e.isFile()) continue;
-      let full = P.join(dir, e.name);
-      if (!ft(full)) continue;
-      F.access(full, F.constants.X_OK, err => {
-        if (err==null) a.push(full);
-        if (--n===0) resolve(a);
+      if (!ft(e.name)) continue;
+      let path = P.join(dir, e.name);
+      F.access(path, F.constants.X_OK, err => {
+        if (!err) a.push(path);
+        if (--n===0) resolve(a.sort());
       });
       ++n;
     }
   });
 }
 
-
-function whichFnSync(dirs: string[], exts: string[], ft: PathTestFunction): string {
+// Get first matching executable (needs entries ordered by name).
+function whichFnSync(dirs: Set<string>, exts: string[], ft: FileTestFunction): string {
   for (var dir of dirs) {
-    var entries = F.readdirSync(dir, {withFileTypes: true});
-    var bin = EOL==="\n"? whichLinuxSync(dir, entries, ft) : whichWin32(dir, entries, exts, ft);
-    if (bin!=null) return bin;
+    var entries = F.readdirSync(dir, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name));
+    var path = EOL==="\n"? whichLinuxSync(dir, entries, ft) : whichWin32(dir, entries, exts, ft);
+    if (path) return path;
   }
   return null;
 }
 
-function whichAllFnSync(dirs: string[], exts: string[], ft: PathTestFunction): string[] {
+// Get matching executables.
+function whichAllFnSync(dirs: Set<string>, exts: string[], ft: FileTestFunction): string[] {
   var a = [];
   for (var dir of dirs) {
     var entries = F.readdirSync(dir, {withFileTypes: true});
-    var bins = EOL==="\n"? whichAllLinuxSync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft);
-    a.push(...bins);
+    var paths = EOL==="\n"? whichAllLinuxSync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft);
+    a.push(...paths);
   }
   return a;
 }
 
 
-async function whichFnAsync(dirs: string[], exts: string[], ft: PathTestFunction): Promise<string> {
-  var binps = [];
+// Get first matching executable (needs entries ordered by name).
+async function whichFnAsync(dirs: Set<string>, exts: string[], ft: FileTestFunction): Promise<string> {
+  var pathps = [];
   for (let dir of dirs) {
-    var p = F.promises.readdir(dir, {withFileTypes: true});
-    binps.push(p.then(entries => EOL==="\n"? whichLinuxAsync(dir, entries, ft) : whichWin32(dir, entries, exts, ft)));
+    var p = F.promises.readdir(dir, {withFileTypes: true}).then(entries => entries.sort((a, b) => a.name.localeCompare(b.name)));
+    pathps.push(p.then(entries => EOL==="\n"? whichLinuxAsync(dir, entries, ft) : whichWin32(dir, entries, exts, ft)));
   }
-  for (var binp of binps) {
-    var bin = await binp;
-    if (bin!=null) return bin;
+  for (var pathp of pathps) {
+    var path = await pathp;
+    if (path) return path;
   }
   return null;
 }
 
-async function whichAllFnAsync(dirs: string[], exts: string[], ft: PathTestFunction): Promise<string[]> {
-  var binps = [], a = [];
+// Get matching executables.
+async function whichAllFnAsync(dirs: Set<string>, exts: string[], ft: FileTestFunction): Promise<string[]> {
+  var pathps = [], a = [];
   for (let dir of dirs) {
     var p = F.promises.readdir(dir, {withFileTypes: true});
-    binps.push(p.then(entries => EOL==="\n"? whichAllLinuxAsync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft)));
+    pathps.push(p.then(entries => EOL==="\n"? whichAllLinuxAsync(dir, entries, ft) : whichAllWin32(dir, entries, exts, ft)));
   }
-  for (var binp of binps)
-    a.push(...(await binp));
+  for (var pathp of pathps)
+    a.push(...(await pathp));
   return a;
 }
 
 
-function whichDirs(options?: WhichOptions) {
+function whichDirs(options?: WhichOptions): Set<string> {
   var sep  = EOL==="\n"? ":" : ";";
   var dirs = options?.paths || process.env.PATH.split(sep);
-  return EOL!=="\n" && options?.cwd? [options.cwd, ...dirs] : dirs;
+  return EOL!=="\n" && options?.cwd? new Set([options.cwd, ...dirs]) : new Set(dirs);
 }
 
-function whichExts(options?: WhichOptions) {
+function whichExts(options?: WhichOptions): string[] {
   return options?.extnames || (process.env.PATHEXT||"").toLowerCase().split(";");
 }
 
-function whichTestFunction(cmd: string | RegExp | PathTestFunction): PathTestFunction {
+function whichTestFunction(cmd: string | RegExp | FileTestFunction): FileTestFunction {
   if (typeof cmd==="function") return cmd;
-  if (typeof cmd==="string") return path => P.basename(path)===cmd;
-  return path => cmd.test(path);
+  if (typeof cmd==="string") return file => file===cmd;
+  return file => cmd.test(file);
 }
 
 
@@ -543,7 +558,7 @@ function whichTestFunction(cmd: string | RegExp | PathTestFunction): PathTestFun
  * @param options which options {cwd, paths}
  * @returns path of executable
  */
-export function whichSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string {
+export function whichSync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): string {
   return whichFnSync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
@@ -553,7 +568,7 @@ export function whichSync(cmd: string | RegExp | PathTestFunction, options?: Whi
  * @param options which options {cwd, paths}
  * @returns paths of executables
  */
-export function whichAllSync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): string[] {
+export function whichAllSync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): string[] {
   return whichAllFnSync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
@@ -563,7 +578,7 @@ export function whichAllSync(cmd: string | RegExp | PathTestFunction, options?: 
  * @param options which options {cwd, paths}
  * @returns path of executable
  */
-export function whichAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string> {
+export function whichAsync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string> {
   return whichFnAsync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
@@ -573,7 +588,7 @@ export function whichAsync(cmd: string | RegExp | PathTestFunction, options?: Wh
  * @param options which options {cwd, paths}
  * @returns paths of executables
  */
-export function whichAllAsync(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string[]> {
+export function whichAllAsync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string[]> {
   return whichAllFnAsync(whichDirs(options), whichExts(options), whichTestFunction(cmd));
 }
 
@@ -583,7 +598,7 @@ export function whichAllAsync(cmd: string | RegExp | PathTestFunction, options?:
  * @param cmd command to locate
  * @param callback callback function (err, path)
  */
-export function which(cmd: string | RegExp | PathTestFunction, callback: WhichCallback): void;
+export function which(cmd: string | RegExp | FileTestFunction, callback: WhichCallback): void;
 
 /**
  * Locate path of executable for given command.
@@ -591,7 +606,7 @@ export function which(cmd: string | RegExp | PathTestFunction, callback: WhichCa
  * @param options which options {cwd, paths}
  * @param callback callback function (err, path)
  */
-export function which(cmd: string | RegExp | PathTestFunction, options: WhichOptions, callback: WhichCallback): void;
+export function which(cmd: string | RegExp | FileTestFunction, options: WhichOptions, callback: WhichCallback): void;
 
 /**
  * Locate path of executable for given command.
@@ -599,9 +614,9 @@ export function which(cmd: string | RegExp | PathTestFunction, options: WhichOpt
  * @param options which options {cwd, paths}
  * @returns path of executable
  */
-export function which(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string>;
+export function which(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string>;
 
-export function which(cmd: string | RegExp | PathTestFunction, options?: WhichOptions | WhichCallback, callback?: WhichCallback): void | Promise<string> {
+export function which(cmd: string | RegExp | FileTestFunction, options?: WhichOptions | WhichCallback, callback?: WhichCallback): void | Promise<string> {
   if (typeof callback==="function") whichAsync(cmd, options as WhichOptions).then(bin => callback(null, bin), callback);
   else if (typeof options==="function") whichAsync(cmd).then(bin => options(null, bin), options);
   else return whichAsync(cmd, options);
@@ -613,7 +628,7 @@ export function which(cmd: string | RegExp | PathTestFunction, options?: WhichOp
  * @param cmd command to locate
  * @param callback callback function (err, path)
  */
-export function whichAll(cmd: string | RegExp | PathTestFunction, callback: WhichAllCallback): void;
+export function whichAll(cmd: string | RegExp | FileTestFunction, callback: WhichAllCallback): void;
 
 /**
  * Locate paths of all matching executables for given command.
@@ -621,7 +636,7 @@ export function whichAll(cmd: string | RegExp | PathTestFunction, callback: Whic
  * @param options which options {cwd, paths}
  * @param callback callback function (err, path)
  */
-export function whichAll(cmd: string | RegExp | PathTestFunction, options: WhichOptions, callback: WhichAllCallback): void;
+export function whichAll(cmd: string | RegExp | FileTestFunction, options: WhichOptions, callback: WhichAllCallback): void;
 
 /**
  * Locate paths of all matching executables for given command.
@@ -629,9 +644,9 @@ export function whichAll(cmd: string | RegExp | PathTestFunction, options: Which
  * @param options which options {cwd, paths}
  * @returns paths of executables
  */
-export function whichAll(cmd: string | RegExp | PathTestFunction, options?: WhichOptions): Promise<string[]>;
+export function whichAll(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string[]>;
 
-export function whichAll(cmd: string | RegExp | PathTestFunction, options?: WhichOptions | WhichAllCallback, callback?: WhichAllCallback): void | Promise<string[]> {
+export function whichAll(cmd: string | RegExp | FileTestFunction, options?: WhichOptions | WhichAllCallback, callback?: WhichAllCallback): void | Promise<string[]> {
   if (typeof callback==="function") whichAllAsync(cmd, options as WhichOptions).then(bin => callback(null, bin), callback);
   else if (typeof options==="function") whichAllAsync(cmd).then(bin => options(null, bin), options);
   else return whichAllAsync(cmd, options);

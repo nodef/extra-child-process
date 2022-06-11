@@ -11,8 +11,8 @@ is a special case here, which returns a `PromiseWithChild` which is essentially
 a `Promise` with a `.child` property to allow `ChildProcess` to be directly
 accessed similar to [spawn]. In addition, **callback-based functions**, such as
 [exec], also **behave as async functions** when a *callback* is **not provided**.
-Functions for **locating path of executables** such as [which] and [whichAll]
-are also included. Design was based on personal ideas and [literature survey].
+Functions for **locating path of executable(s)** such as [which] and [whichAll]
+are also included. Design was based on local ideas and [literature survey].
 
 > Stability: [Experimental](https://www.youtube.com/watch?v=L1j93RnIxEo).
 
@@ -23,19 +23,59 @@ are also included. Design was based on personal ideas and [literature survey].
 
 ```javascript
 const cp = require('extra-child-process');
-// cp.exec(command, options)
-// cp.execFile(file, args, options)
 
-async function main() {
-  // With Promise:
-  var {stdout, stderr} = await cp.exec('ls -a', {cwd: '/home'});
-  var {stdout, stderr} = await cp.execFile('ls', ['-a'], {cwd: '/home'});
 
-  // Without Promise:
-  cp.exec('ls -a', {cwd: '/home'}, (err, stdout, stderr) => 0);
-  cp.execFile('ls', ['-a'], {cwd: '/home'}, (err, stdout, stderr) => 0);
+// 1. List files in current directory.
+async function example1() {
+  var {stdout, stderr} = await cp.exec('ls -a');
+  var {stdout, stderr} = await cp.execFile('ls', ['-a']);
+  cp.exec('ls -a', (err, stdout, stderr) => 0);
+  cp.execFile('ls', ['-a'], (err, stdout, stderr) => 0);
+  // → .
+  // → ..
+  // → .build
+  // → .git
+  // → .github
+  // → ...
 }
-main();
+example1();
+
+
+// 2. List files in 'src' directory.
+async function example2() {
+  var {stdout, stderr} = await cp.exec('ls -a', {cwd: 'src'});
+  var {stdout, stderr} = await cp.execFile('ls', ['-a'], {cwd: 'src'});
+  cp.exec('ls -a', {cwd: 'src'}, (err, stdout, stderr) => 0);
+  cp.execFile('ls', ['-a'], {cwd: 'src'}, (err, stdout, stderr) => 0);
+  // → .
+  // → ..
+  // → index.ts
+}
+example2();
+
+
+// 3. Locate path of node executable.
+async function example3() {
+  var paths = process.env.PATH.split(';');
+  var exec  = await cp.which('node');
+  var exec  = await cp.which('node', {paths});
+  // → 'D:\\Program Files\\nodejs\\node.exe'
+}
+example3();
+
+
+// 4. Locate path of n*e executables.
+async function example4() {
+  var paths = process.env.PATH.split(';');
+  var execs = await cp.whichAll(/^n.*?e$/);
+  var execs = await cp.whichAll(/^n.*?e$/, {paths});
+  // → [
+  // →   'D:\\Program Files\\Git\\usr\\bin\\nice.exe',
+  // →   'C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.2\\bin\\nvprune.exe',
+  // →   'D:\\Program Files\\nodejs\\node.exe'
+  // → ]
+}
+example4();
 ```
 
 <br>
