@@ -1,10 +1,23 @@
 Useful additions to inbuilt [child_process] module.<br>
 📦 [Node.js](https://www.npmjs.com/package/extra-child-process),
 📜 [Files](https://unpkg.com/extra-child-process/),
-📰 [Docs](https://nodef.github.io/extra-child-process/),
-🔎 [Survey](https://gist.github.com/wolfram77/d936da570d7bf73f95d1513d4368573e).
+📰 [Docs](https://nodef.github.io/extra-child-process/).
+
+This package provides **async versions of functions** (in additon to the
+existing *sync* and *callback*-based functions), which are not included with the
+inbuilt `child_process` module. They are named as `*Async` can be used with
+`Promise`-based asynchronous programming using the `await` keyword. [spawnAsync]
+is a special case here, which returns a `PromiseWithChild` which is essentially
+a `Promise` with a `.child` property to allow `ChildProcess` to be directly
+accessed similar to [spawn]. In addition, **callback-based functions**, such as
+[exec], also **behave as async functions** when a *callback* is **not provided**.
+Functions for **locating path of executables** such as [which] and [whichAll]
+are also included. Design was based on personal ideas and [literature survey].
 
 > Stability: [Experimental](https://www.youtube.com/watch?v=L1j93RnIxEo).
+
+[child_process]: https://nodejs.org/api/child_process.html
+[literature survey]: https://gist.github.com/wolfram77/d936da570d7bf73f95d1513d4368573e
 
 <br>
 
@@ -73,7 +86,7 @@ main();
 
 [![](https://img.youtube.com/vi/QKM1o32Y2ps/maxresdefault.jpg)](https://www.youtube.com/watch?v=QKM1o32Y2ps)
 
-[child_process]: https://nodejs.org/api/child_process.html
+
 [exec]: https://nodef.github.io/extra-child-process/modules.html#exec
 [execFile]: https://nodef.github.io/extra-child-process/modules.html#execFile
 [fork]: https://nodef.github.io/extra-child-process/modules.html#fork
