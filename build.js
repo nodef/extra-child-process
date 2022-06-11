@@ -40,7 +40,7 @@ function deployAll(ds) {
   var m   = build.readMetadata('.');
   var ver = build.nextUnpublishedVersion(m.name, m.version);
   build.exec(`tsc`);
-  build.updateGithubRepoDetails();
+  build.updateGithubRepoDetails({topics: keywords(ds)});
   build.generateDocs(`src/${srcts}`);
   build.publishDocs();
   deployRoot(ds, ver);

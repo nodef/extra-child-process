@@ -159,10 +159,9 @@ export function exec(command: string, options: ExecSyncOptions, callback: ExecCa
  */
 export function exec(command: string, options?: ExecSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
-export function exec(command: string, options?: ExecSyncOptions | ExecCallback, callback?: ExecCallback): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
-  if (typeof callback==="function") return C.exec(command, options as ExecSyncOptions, callback);
-  if (typeof options ==="function") return C.exec(command, options);
-  return execAsync(command, options);
+export function exec(...args: any[]): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
+  if (typeof args[args.length-1]==="function") C.exec.apply(null, args);
+  else return execAsync.apply(null, args);
 }
 
 
@@ -250,11 +249,9 @@ export function execFile(file: string, options?: ExecFileSyncOptions): PromiseWi
  */
 export function execFile(file: string, args: string[], options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
-export function execFile(file: string, args: string[] | ExecFileSyncOptions | ExecCallback, options?: ExecFileSyncOptions | ExecCallback, callback?: ExecCallback): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
-  if (typeof callback==="function") return C.execFile(file, args as string[], options as ExecFileSyncOptions, callback);
-  if (typeof options ==="function") return C.execFile(file, args as any, options);
-  if (typeof args==="function")     return C.execFile(file, args);
-  return execFileAsync(file, args as any, options);
+export function execFile(...args: any[]): ChildProcess | PromiseWithChild<ExecAsyncReturns> {
+  if (typeof args[args.length-1]==="function") C.execFile.apply(null, args);
+  else return execFileAsync.apply(null, args);
 }
 
 

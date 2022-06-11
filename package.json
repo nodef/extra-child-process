@@ -1,6 +1,6 @@
 {
   "name": "extra-child-process",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Useful additions to inbuilt child_process module.",
   "main": "index.js",
   "module": "index.mjs",
@@ -33,7 +33,7 @@
     "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@types/node": "^17.0.42",
-    "extra-build": "^2.1.22",
+    "extra-build": "^2.1.23",
     "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-dts": "^4.2.2"
   }
