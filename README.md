@@ -3,6 +3,25 @@ Useful additions to inbuilt [child_process] module.<br>
 📜 [Files](https://unpkg.com/extra-child-process/),
 📰 [Docs](https://nodef.github.io/extra-child-process/).
 
+Have you heard of [bash] or [command prompt]? These programs are called **shells**.
+They **watch what you type**, and treat it as requests to **run particular programs**.
+Programs themselves are just names on the *file system*, and the shell **searches**
+**them in a particular manner** (controlled with *environment variables* such as [PATH]).
+Our programs as based on [UNIX principles], where each program can accept an
+**initial input** through **arguments**, **runtime input** through `stdin` *input stream*
+`#0`, and provide its **runtime output** into `stdout` *output stream* `#1` (along
+with `stderr` *output stream* `#2` for *errors*). The output of a program can be fed
+into another program through **piping** `|`, allowing us to **set up a pipline** of
+programs to achieve a **complex operation** (without having to write a new program).
+
+[child_process] is an **inbuilt Node.js module** that enables us to *execute specific*
+*programs directly* ([execFile]), *or through the shell* ([exec]). **Executing**
+**programs through the shell** is hyper convenient as we are allowed to *use its*
+*inbuilt commands and features* such as *piping of streams*, but is does come with a
+**security risk** (such as [command injection]) **when using unsanitized user input** to
+generate the sequence of instructions to be executed on the shell. When possible,
+**execting specific programs directly** using [execFile] would be a suitable approach.
+
 This package provides **async versions of functions** (in additon to the
 existing *sync* and *callback*-based functions), which are not included with the
 inbuilt `child_process` module. They are named as `*Async` can be used with
@@ -17,6 +36,11 @@ are also included. Design was based on local ideas and [literature survey].
 > Stability: [Experimental](https://www.youtube.com/watch?v=L1j93RnIxEo).
 
 [child_process]: https://nodejs.org/api/child_process.html
+[bash]: https://en.wikipedia.org/wiki/Bash_(Unix_shell)
+[command prompt]: https://en.wikipedia.org/wiki/Cmd.exe
+[PATH]: https://superuser.com/q/284342/305990
+[UNIX principles]: https://www.youtube.com/watch?v=tc4ROCJYbm0
+[command injection]: https://www.stackhawk.com/blog/nodejs-command-injection-examples-and-prevention/
 [literature survey]: https://gist.github.com/wolfram77/d936da570d7bf73f95d1513d4368573e
 
 <br>
