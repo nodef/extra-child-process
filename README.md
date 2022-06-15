@@ -149,6 +149,7 @@ example4();
 <br>
 
 [![](https://i.imgur.com/SzRIVci.jpg)](https://www.youtube.com/watch?v=GW2g-5WALrc&list=PLEaaT3oTjHIdDH5DSL-hAOEhe8KGCt93J)
+[![DOI](https://zenodo.org/badge/483206539.svg)](https://zenodo.org/badge/latestdoi/483206539)
 
 
 [exec]: https://nodef.github.io/extra-child-process/modules.html#exec
