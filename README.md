@@ -21,6 +21,9 @@ programs to achieve a **complex operation** (without having to write a new progr
 **security risk** (such as [command injection]) **when using unsanitized user input** to
 generate the sequence of instructions to be executed on the shell. When possible,
 **execting specific programs directly** using [execFile] would be a suitable approach.
+[spawn] can be used when we want to start a new process and **control** its *input* and
+*output streams*. [exec] and [execFile] are implemented on top of [spawn]. [fork] is a
+special case of [spawn], used specifically to launch *new Node.js* processes.
 
 This package provides **async versions of functions** (in additon to the
 existing *sync* and *callback*-based functions), which are not included with the
