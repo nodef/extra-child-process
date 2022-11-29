@@ -133,8 +133,8 @@ class ExecAsyncHandler {
 /**
  * Execute a command within a shell, buffering any output.
  * @param command command to run, with space-separated arguments
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function execAsync(command: string, options?: ExecSyncOptions): PromiseWithChild<ExecAsyncReturns> {
   var e = new ExecAsyncHandler();
@@ -154,7 +154,7 @@ export function exec(command: string, callback: ExecCallback): ChildProcess;
 /**
  * Execute a command within a shell, buffering any output.
  * @param command command to run, with space-separated arguments
- * @param options options {cwd, env, ...}
+ * @param options options \{cwd, env, ...\}
  * @param callback callback function (err, stdout, stderr)
  * @returns child process
  */
@@ -163,8 +163,8 @@ export function exec(command: string, options: ExecSyncOptions, callback: ExecCa
 /**
  * Execute a command within a shell, buffering any output.
  * @param command command to run, with space-separated arguments
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function exec(command: string, options?: ExecSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
@@ -182,8 +182,8 @@ export function exec(...args: any[]): ChildProcess | PromiseWithChild<ExecAsyncR
 /**
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function execFileAsync(file: string, options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
@@ -191,8 +191,8 @@ export function execFileAsync(file: string, options?: ExecFileSyncOptions): Prom
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param args list of arguments
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function execFileAsync(file: string, args: string[], options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
@@ -216,7 +216,7 @@ export function execFile(file: string, callback: ExecCallback): ChildProcess;
 /**
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
- * @param options options {cwd, env, ...}
+ * @param options options \{cwd, env, ...\}
  * @param callback callback function (err, stdout, stderr)
  * @returns child process
  */
@@ -235,7 +235,7 @@ export function execFile(file: string, args: string[], callback: ExecCallback): 
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param args list of arguments
- * @param options options {cwd, env, ...}
+ * @param options options \{cwd, env, ...\}
  * @param callback callback function (err, stdout, stderr)
  * @returns child process
  */
@@ -244,8 +244,8 @@ export function execFile(file: string, args: string[], options: ExecFileSyncOpti
 /**
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function execFile(file: string, options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
@@ -253,8 +253,8 @@ export function execFile(file: string, options?: ExecFileSyncOptions): PromiseWi
  * Execute an executable without a shell by default, buffering any output.
  * @param file name or path of executable file
  * @param args list of arguments
- * @param options options {cwd, env, ...}
- * @returns output {stdout, stderr}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{stdout, stderr\}
  */
 export function execFile(file: string, args: string[], options?: ExecFileSyncOptions): PromiseWithChild<ExecAsyncReturns>;
 
@@ -314,8 +314,8 @@ class StreamBuffer {
 /**
  * Spawn new process using given command and arguments.
  * @param command command to run
- * @param options options {cwd, env, ...}
- * @returns output {pid, output, stdout, stderr, status, signal}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{pid, output, stdout, stderr, status, signal\}
  */
 export function spawnAsync(command: string, options?: SpawnSyncOptions): PromiseWithChild<SpawnSyncReturns<string | Buffer>>;
 
@@ -323,8 +323,8 @@ export function spawnAsync(command: string, options?: SpawnSyncOptions): Promise
  * Spawn new process using given command and arguments.
  * @param command command to run
  * @param args list of arguments
- * @param options options {cwd, env, ...}
- * @returns output {pid, output, stdout, stderr, status, signal}
+ * @param options options \{cwd, env, ...\}
+ * @returns output \{pid, output, stdout, stderr, status, signal\}
  */
 export function spawnAsync(command: string, args: string[], options?: SpawnSyncOptions): PromiseWithChild<SpawnSyncReturns<string | Buffer>>;
 
@@ -561,7 +561,7 @@ function whichTestFunction(cmd: string | RegExp | FileTestFunction): FileTestFun
 /**
  * Locate path of executable for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns path of executable
  */
 export function whichSync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): string {
@@ -571,7 +571,7 @@ export function whichSync(cmd: string | RegExp | FileTestFunction, options?: Whi
 /**
  * Locate paths of all matching executables for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns paths of executables
  */
 export function whichAllSync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): string[] {
@@ -581,7 +581,7 @@ export function whichAllSync(cmd: string | RegExp | FileTestFunction, options?: 
 /**
  * Locate path of executable for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns path of executable
  */
 export function whichAsync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string> {
@@ -591,7 +591,7 @@ export function whichAsync(cmd: string | RegExp | FileTestFunction, options?: Wh
 /**
  * Locate paths of all matching executables for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns paths of executables
  */
 export function whichAllAsync(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string[]> {
@@ -609,7 +609,7 @@ export function which(cmd: string | RegExp | FileTestFunction, callback: WhichCa
 /**
  * Locate path of executable for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @param callback callback function (err, path)
  */
 export function which(cmd: string | RegExp | FileTestFunction, options: WhichOptions, callback: WhichCallback): void;
@@ -617,7 +617,7 @@ export function which(cmd: string | RegExp | FileTestFunction, options: WhichOpt
 /**
  * Locate path of executable for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns path of executable
  */
 export function which(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string>;
@@ -639,7 +639,7 @@ export function whichAll(cmd: string | RegExp | FileTestFunction, callback: Whic
 /**
  * Locate paths of all matching executables for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @param callback callback function (err, path)
  */
 export function whichAll(cmd: string | RegExp | FileTestFunction, options: WhichOptions, callback: WhichAllCallback): void;
@@ -647,7 +647,7 @@ export function whichAll(cmd: string | RegExp | FileTestFunction, options: Which
 /**
  * Locate paths of all matching executables for given command.
  * @param cmd command to locate
- * @param options which options {cwd, paths}
+ * @param options which options \{cwd, paths\}
  * @returns paths of executables
  */
 export function whichAll(cmd: string | RegExp | FileTestFunction, options?: WhichOptions): Promise<string[]>;
