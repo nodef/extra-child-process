@@ -115,7 +115,7 @@ example4();
 |  ----  |  ----  |
 | [exec] | Execute a command within a shell, buffering any output. |
 | [execFile] | Execute an executable without a shell by default, buffering any output. |
-| [fork] | This method is a special case of `spawn` used specifically to spawn new Node.js processes. |
+| [fork] | This method is a special case of spawn used specifically to spawn new Node.js processes. |
 | [spawn] | This method spawns a new process using the given `command` and `args`. |
 | [spawnAsync] | Spawn new process using given command and arguments. |
 | [which] | Locate path of executable for given command. |
@@ -156,10 +156,10 @@ example4();
 [![DOI](https://zenodo.org/badge/483206539.svg)](https://zenodo.org/badge/latestdoi/483206539)
 
 
-[exec]: https://nodef.github.io/extra-child-process/modules.html#exec
-[execFile]: https://nodef.github.io/extra-child-process/modules.html#execFile
-[fork]: https://nodef.github.io/extra-child-process/modules.html#fork
-[spawn]: https://nodef.github.io/extra-child-process/modules.html#spawn
-[spawnAsync]: https://nodef.github.io/extra-child-process/modules.html#spawnAsync
-[which]: https://nodef.github.io/extra-child-process/modules.html#which
-[whichAll]: https://nodef.github.io/extra-child-process/modules.html#whichAll
+[exec]: https://github.com/nodef/extra-child-process/wiki/exec
+[execFile]: https://github.com/nodef/extra-child-process/wiki/execFile
+[fork]: https://github.com/nodef/extra-child-process/wiki/fork
+[spawn]: https://github.com/nodef/extra-child-process/wiki/spawn
+[spawnAsync]: https://github.com/nodef/extra-child-process/wiki/spawnAsync
+[which]: https://github.com/nodef/extra-child-process/wiki/which
+[whichAll]: https://github.com/nodef/extra-child-process/wiki/whichAll
