@@ -1,7 +1,11 @@
 const build = require('extra-build');
 
-const owner  = 'nodef';
-const srcts  = 'index.ts';
+const owner = 'nodef';
+const repo  = build.readMetadata('.').name;
+const srcts = 'index.ts';
+const LOCATIONS = [
+  'src/index.ts',
+];
 
 
 
@@ -15,7 +19,7 @@ function keywords(ds) {
 
 
 // Publish root package to NPM, GitHub.
-function publishRoot(ds, ver) {
+function publishRootPackage(ds, ver, typ) {
   var _package = build.readDocument('package.json');
   var m = build.readMetadata('.');
   m.version  = ver;
@@ -28,29 +32,67 @@ function publishRoot(ds, ver) {
 }
 
 
-// Deploy root package to NPM, GitHub.
-function deployRoot(ds, ver) {
-  build.bundleScript(`.build/${srcts}`);
-  publishRoot(ds, ver);
+// Transform JSDoc in .d.ts file.
+function transformJsdoc(x, dm) {
+  if (!dm.has(x.name)) return null;
+  var link = `[📘](https://github.com/${owner}/${repo}/wiki/${x.name})`;
+  x.description = x.description.replace(/\[📘\]\(.+?\)/g, '');
+  x.description = x.description.trim() + '\n' + link;
+  return x;
 }
 
 
-// Deploy root, sub packages to NPM, GitHub.
-function deployAll(ds) {
-  var m   = build.readMetadata('.');
-  var ver = build.nextUnpublishedVersion(m.name, m.version);
+// Bundle script for test or publish.
+function bundleScript(ds) {
+  var dm = new Map(ds.map(d => [d.name, d]));
   build.exec(`tsc`);
-  build.updateGithubRepoDetails({topics: keywords(ds)});
+  build.bundleScript(`.build/${srcts}`);
+  build.jsdocifyScript('index.d.ts', 'index.d.ts', x => transformJsdoc(x, dm));
+}
+
+
+// Publish root packages to NPM, GitHub.
+function publishRootPackages(ds, ver) {
+  bundleScript(ds);
+  publishRootPackage(ds, ver);
+}
+
+
+// Publish docs.
+function publishDocs(ds) {
+  build.updateGithubRepoDetails({owner, repo, topics: keywords(ds, true)});
   build.generateDocs(`src/${srcts}`);
   build.publishDocs();
-  deployRoot(ds, ver);
+}
+
+
+// Publish root, sub packages to NPM, GitHub.
+function publishPackages(ds) {
+  var m   = build.readMetadata('.');
+  var ver = build.nextUnpublishedVersion(m.name, m.version);
+  publishRootPackages(ds, ver);
 }
 
 
 // Generate wiki for all exported symbols.
-function generateWiki() {
-  // createWikiFiles();
-  // generateWikiFiles();
+function generateWiki(ds) {
+  var rkind = /namespace|function/i, useWiki = true;
+  var dm = new Map(ds.map(d => [d.name, d]));
+  for (var d of ds) {
+    var f = `wiki/${d.name}.md`;
+    if (!rkind.test(d.kind)) continue;
+    if (!fs.existsSync(f))  {
+      var txt = build.wikiMarkdown(d, {owner, repo, useWiki});
+      build.writeFileText(f, txt);
+    }
+    else {
+      var txt = build.readFileText(f);
+      txt = build.wikiUpdateDescription(txt, d);
+      txt = build.wikiUpdateCodeReference(txt, d, {owner, repo, useWiki})
+      txt = build.wikiUpdateLinkReferences(txt, dm, {owner, repo, useWiki});
+      build.writeFileText(f, txt);
+    }
+  }
 }
 
 
@@ -66,25 +108,37 @@ function readmeDescription(d) {
   return a;
 }
 
+
+// Sort docs details by original order.
+function compareLocation(a, b) {
+  if (a.kind!==b.kind) return 0;
+  var alocn = a.location.replace(/.*?@types\/node.*?\:/, 'src/_file.ts:');
+  var blocn = b.location.replace(/.*?@types\/node.*?\:/, 'src/_file.ts:');
+  var [afile] = alocn.split(':');
+  var [bfile] = blocn.split(':');
+  return LOCATIONS.indexOf(afile) - LOCATIONS.indexOf(bfile) || alocn.localeCompare(blocn);
+}
+
+
 // Update README.
 function updateReadme(ds) {
-  var m  = build.readMetadata('.');
-  var repo = m.name;
-  var ds = ds.slice();
+  var ds = ds.slice().sort(compareLocation);
   var dm = new Map(ds.map(d => [d.name, d]));
   var txt = build.readFileText('README.md');
   txt = build.wikiUpdateIndex(txt, dm, readmeDescription);
-  txt = build.wikiUpdateLinkReferences(txt, dm, {owner, repo});
+  txt = build.wikiUpdateLinkReferences(txt, dm, {owner, repo, useWiki: true});
   build.writeFileText('README.md', txt);
 }
 
 
+// Finally.
 function main(a) {
   var p  = build.loadDocs([`src/${srcts}`]);
   var ds = p.children.map(build.docsDetails);
-  if (a[2] === 'deploy') deployAll(ds);
-  else if (a[2] === 'wiki') generateWiki(ds);
-  else if (a[2] === 'readme') updateReadme(ds);
-  else build.bundleScript(`.build/${srcts}`);
+  if (a[2]==='wiki') generateWiki(ds);
+  else if (a[2]==='readme') updateReadme(ds);
+  else if (a[2]==='publish-docs') publishDocs(ds);
+  else if (a[2]==='publish-packages') publishPackages(ds);
+  else bundleScript(ds);
 }
 main(process.argv);

@@ -1,6 +1,6 @@
 {
   "name": "extra-child-process",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Useful additions to inbuilt child_process module.",
   "main": "index.js",
   "module": "index.mjs",
@@ -12,7 +12,8 @@
   "scripts": {
     "test": "exit",
     "build": "node ./build",
-    "deploy": "node ./build deploy"
+    "publish-docs": "node ./build publish-docs",
+    "publish-packages": "node ./build publish-packages"
   },
   "keywords": [
     "extra",
@@ -30,11 +31,11 @@
   },
   "homepage": "https://github.com/nodef/extra-child-process#readme",
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.0",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@types/node": "^17.0.42",
-    "extra-build": "^2.1.23",
+    "@rollup/plugin-commonjs": "^23.0.3",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@types/node": "^18.11.9",
+    "extra-build": "^2.2.39",
     "rollup-plugin-cleanup": "^3.2.1",
-    "rollup-plugin-dts": "^4.2.2"
+    "rollup-plugin-dts": "^5.0.0"
   }
 }
